@@ -1,7 +1,17 @@
 from pathlib import Path
+import sqlite3
 import xml.etree.ElementTree as ET
 
 FOLDER_PATH = Path(r"\\sab-az-sys01\Failure")
+DB_NAME = "monitor.db"
+INSERT_SQL = """
+INSERT OR IGNORE INTO failed_edi_files (
+    file_name,
+    trading_partner_id,
+    purchase_order_number
+)
+VALUES (?, ?, ?)
+"""
 
 
 def find_first_by_local_name(root, tag_name):
@@ -47,11 +57,27 @@ def main():
         except Exception as e:
             print(f"Error reading {file.name}: {e}")
 
-    print(f"Total records built: {len(records)}")
-    print()
+    if not records:
+        print("No records were extracted from the XML files.")
+        return
 
-    for record in records:
-        print(record)
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.executemany(
+        INSERT_SQL,
+        [
+            (
+                record["file_name"],
+                record["trading_partner_id"],
+                record["purchase_order_number"],
+            )
+            for record in records
+        ],
+    )
+    conn.commit()
+    conn.close()
+
+    print(f"Inserted {len(records)} record(s) into failed_edi_files in '{DB_NAME}'.")
 
 
 if __name__ == "__main__":

@@ -38,50 +38,19 @@
   </header>
   <main>
     <section class="card">
-      <div class="card-header">Transaction status counts</div>
+      <div class="card-header">Failed EDI file summary</div>
       <div class="card-body">
-        {% set counts = {'Failed': 0, 'Pending': 0, 'Processed': 0} %}
-        {% if status_summary %}
-        {% for status, count in status_summary %}
-        {% if status in counts %}
-        {% set _ = counts.update({status: count}) %}
-        {% endif %}
-        {% endfor %}
         <div class="status-grid">
           <div class="status-box status-box-failed">
-            <div class="status-label">Failed:</div>
-            <div class="status-value">{{ counts['Failed'] }}</div>
-          </div>
-          <div class="status-box status-box-pending">
-            <div class="status-label">Pending:</div>
-            <div class="status-value">{{ counts['Pending'] }}</div>
-          </div>
-          <div class="status-box">
-            <div class="status-label">Processed:</div>
-            <div class="status-value">{{ counts['Processed'] }}</div>
+            <div class="status-label">Failed XML Files</div>
+            <div class="status-value">{{ total_failed_files }}</div>
           </div>
         </div>
-        {% else %}
-        <div class="status-grid">
-          <div class="status-box status-box-failed">
-            <div class="status-label">Failed:</div>
-            <div class="status-value">0</div>
-          </div>
-          <div class="status-box status-box-pending">
-            <div class="status-label">Pending:</div>
-            <div class="status-value">0</div>
-          </div>
-          <div class="status-box">
-            <div class="status-label">Processed:</div>
-            <div class="status-value">0</div>
-          </div>
-        </div>
-        {% endif %}
       </div>
     </section>
 
     <section class="card">
-      <div class="card-header">Transaction details</div>
+      <div class="card-header">Failed EDI file details</div>
       <div class="card-body">
         {% if details_rows %}
         <div class="table-wrap">
@@ -89,33 +58,27 @@
             <thead>
               <tr>
                 <th>ID</th>
-                <th>EDI Ref</th>
-                <th>Customer</th>
-                <th>Doc Type</th>
-                <th>Status</th>
-                <th>Created At</th>
-                <th>Updated At</th>
-                <th>Error Message</th>
+                <th>File Name</th>
+                <th>Trading Partner ID</th>
+                <th>Purchase Order Number</th>
+                <th>Loaded At</th>
               </tr>
             </thead>
             <tbody>
-              {% for id, edi_ref, customer, doc_type, status, created_at, updated_at, error_message in details_rows %}
+              {% for id, file_name, trading_partner_id, purchase_order_number, loaded_at in details_rows %}
               <tr>
                 <td>{{ id }}</td>
-                <td>{{ edi_ref }}</td>
-                <td>{{ customer or '-' }}</td>
-                <td>{{ doc_type or '-' }}</td>
-                <td>{{ status }}</td>
-                <td>{{ created_at or '-' }}</td>
-                <td>{{ updated_at or '-' }}</td>
-                <td>{{ error_message or '-' }}</td>
+                <td>{{ file_name }}</td>
+                <td>{{ trading_partner_id or '-' }}</td>
+                <td>{{ purchase_order_number or '-' }}</td>
+                <td>{{ loaded_at or '-' }}</td>
               </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
         {% else %}
-        <p class="empty">No EDI transactions found.</p>
+        <p class="empty">No failed EDI files found.</p>
         {% endif %}
       </div>
     </section>

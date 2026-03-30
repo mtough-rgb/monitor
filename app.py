@@ -1,5 +1,4 @@
-from flask import Flask, render_template, request
-from datetime import datetime
+from flask import Flask, render_template
 import sqlite3
 
 app = Flask(__name__)
@@ -7,16 +6,14 @@ app = Flask(__name__)
 DB_NAME = 'monitor.db'
 
 SUMMARY_QUERY = """
-    SELECT status, COUNT(*)
-    FROM edi_transactions
-    GROUP BY status
-    ORDER BY status;
+    SELECT COUNT(*)
+    FROM failed_edi_files;
 """
 
 DETAILS_QUERY = """
-    SELECT id, edi_ref, customer, doc_type, status, created_at, updated_at, error_message
-    FROM edi_transactions
-    ORDER BY updated_at DESC, created_at DESC, id DESC
+    SELECT id, file_name, trading_partner_id, purchase_order_number, loaded_at
+    FROM failed_edi_files
+    ORDER BY loaded_at DESC, id DESC
     LIMIT 50;
 """
 
@@ -26,19 +23,11 @@ def dashboard():
     cursor = conn.cursor()
 
     cursor.execute(SUMMARY_QUERY)
-    rows = cursor.fetchall()
-
-    summary_dict = {status: count for status, count in rows}
-
-    status_summary = [
-    ("Failed", summary_dict.get("Failed", 0)),
-    ("Pending", summary_dict.get("Pending", 0)),
-    ("Processed", summary_dict.get("Processed", 0)),
-    ]
+    total_failed_files = cursor.fetchone()[0]
 
     cursor.execute("""
-    SELECT MAX(updated_at)
-    FROM edi_transactions
+    SELECT MAX(loaded_at)
+    FROM failed_edi_files
     """)
     last_updated = cursor.fetchone()[0]
 
@@ -49,7 +38,7 @@ def dashboard():
 
     return render_template(
         'dashboard.html',
-        status_summary=status_summary,
+        total_failed_files=total_failed_files,
         details_rows=details_rows,
         last_updated=last_updated,
     )
